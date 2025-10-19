@@ -15,6 +15,9 @@ const DRAG_PORTAL = typeof document !== 'undefined' ? document.body : null;
 
 const STORAGE_KEY = 'malla_uc_multi_plans_v1';
 const THEME_STORAGE_KEY = 'malla_theme_v1';
+const MENU_VIEWPORT_PADDING = 12;
+const MENU_MIN_WIDTH = 240;
+const SEMESTER_MIN_WIDTH = 260;
 
 const BUILT_IN_DEFINITIONS = [
   {
@@ -395,6 +398,11 @@ function uniquePlanName(base, plans) {
   return candidate;
 }
 
+function computeColumnsForWidth(width) {
+  const effective = Math.max(width - MENU_VIEWPORT_PADDING * 2, SEMESTER_MIN_WIDTH);
+  return Math.max(1, Math.floor(effective / SEMESTER_MIN_WIDTH));
+}
+
 function buildCodeResolver(courses) {
   const map = {};
   Object.values(courses).forEach((course) => {
@@ -735,6 +743,10 @@ export default function App() {
   const [colorScope, setColorScope] = useState('selected');
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [columnsPerRow, setColumnsPerRow] = useState(() =>
+    computeColumnsForWidth(typeof window !== 'undefined' ? window.innerWidth : 1440)
+  );
+  const [visibleOffset, setVisibleOffset] = useState(0);
 
   useEffect(() => {
     const plan = mallaState.plans[mallaState.selectedId];
@@ -855,6 +867,23 @@ export default function App() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setColumnsPerRow(computeColumnsForWidth(window.innerWidth));
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    setVisibleOffset((offset) => {
+      const maxOffset = Math.max(0, data.semesters.length - columnsPerRow);
+      return Math.min(offset, maxOffset);
+    });
+  }, [columnsPerRow, data.semesters.length]);
 
   const planOptions = useMemo(
     () => Object.keys(mallaState.plans).map((id) => mallaState.plans[id]).filter(Boolean),
@@ -1402,22 +1431,42 @@ export default function App() {
 
   const activeCourse = actionMenu ? data.courses[actionMenu] : null;
 
+  const columns = useMemo(() => {
+    const count = data.semesters.length || 1;
+    return Math.max(1, Math.min(columnsPerRow, count));
+  }, [columnsPerRow, data.semesters.length]);
+
   const gridStyle = useMemo(
     () => ({
-      gridTemplateColumns: `repeat(${data.semesters.length}, minmax(220px, 1fr))`
+      gridTemplateColumns: `repeat(${columns}, minmax(${SEMESTER_MIN_WIDTH}px, 1fr))`
     }),
-    [data.semesters.length]
+    [columns]
   );
+
+  const visibleSemesters = useMemo(() => {
+    if (data.semesters.length <= columns) return data.semesters;
+    return data.semesters.slice(visibleOffset, visibleOffset + columns);
+  }, [data.semesters, columns, visibleOffset]);
+
+  const maxSliderValue = Math.max(0, data.semesters.length - columns);
 
   useLayoutEffect(() => {
     if (!menuInfo || !menuRef.current) return;
     const menuHeight = menuRef.current.offsetHeight;
-    const viewportBottom = window.scrollY + window.innerHeight - 12;
-    const viewportTop = window.scrollY + 12;
+    const menuWidth = menuRef.current.offsetWidth;
+    const viewportBottom = window.scrollY + window.innerHeight - MENU_VIEWPORT_PADDING;
+    const viewportTop = window.scrollY + MENU_VIEWPORT_PADDING;
+    const viewportLeft = window.scrollX + MENU_VIEWPORT_PADDING;
+    const viewportRight =
+      window.scrollX + window.innerWidth - menuWidth - MENU_VIEWPORT_PADDING;
+
     const desiredTop = Math.min(menuInfo.y, viewportBottom - menuHeight);
     const clampedTop = Math.max(viewportTop, desiredTop);
-    if (clampedTop !== menuInfo.y) {
-      setMenuInfo((info) => (info ? { ...info, y: clampedTop } : info));
+    const desiredLeft = Math.min(menuInfo.x, viewportRight);
+    const clampedLeft = Math.max(viewportLeft, desiredLeft);
+
+    if (clampedTop !== menuInfo.y || clampedLeft !== menuInfo.x) {
+      setMenuInfo((info) => (info ? { ...info, y: clampedTop, x: clampedLeft } : info));
     }
   }, [menuInfo, actionMenu]);
 
@@ -1493,13 +1542,30 @@ export default function App() {
             <span className='stat-label'>Semestres completos</span>
             <strong>{semestersCompleted}</strong> / {data.semesters.length}
           </div>
+          {maxSliderValue > 0 && (
+            <div className='slider-wrapper'>
+              <span className='stat-label'>Vista</span>
+              <input
+                type='range'
+                min='0'
+                max={maxSliderValue}
+                step='1'
+                value={visibleOffset}
+                onChange={(e) => setVisibleOffset(Number(e.target.value))}
+              />
+              <small>
+                {visibleOffset + 1} - {Math.min(visibleOffset + columns, data.semesters.length)} /{' '}
+                {data.semesters.length}
+              </small>
+            </div>
+          )}
         </div>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
         <div className='main'>
           <div className='grid' ref={gridRef} style={gridStyle}>
-            {data.semesters.map((sem) => (
+            {visibleSemesters.map((sem) => (
               <Droppable droppableId={sem.id} key={sem.id}>
                 {(prov, snapshot) => (
                   <div
@@ -1613,13 +1679,14 @@ export default function App() {
                                           return;
                                         }
                                         const rect = ev.currentTarget.getBoundingClientRect();
-                                        const x = Math.min(
-                                          rect.right + 12 + window.scrollX,
-                                          window.scrollX + window.innerWidth - 220
-                                        );
+                                        const maxX =
+                                          window.scrollX + window.innerWidth - MENU_MIN_WIDTH - MENU_VIEWPORT_PADDING;
+                                        const initialX =
+                                          rect.right + MENU_VIEWPORT_PADDING + window.scrollX;
+                                        const x = Math.min(initialX, maxX);
                                         const y = Math.max(
-                                          rect.top + window.scrollY - 10,
-                                          window.scrollY + 12
+                                          rect.top + window.scrollY - MENU_VIEWPORT_PADDING,
+                                          window.scrollY + MENU_VIEWPORT_PADDING
                                         );
                                         setMenuInfo({ x, y });
                                         setActionMenu(c.id);
