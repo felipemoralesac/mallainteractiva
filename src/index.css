@@ -84,7 +84,16 @@ body{
 .plan-add span{margin-right:4px}
 .plan-add .small{font-size:11px;padding:6px 10px;text-transform:none;letter-spacing:0}
 .main{flex:1;overflow:auto;padding:6px 10px;display:flex}
-.grid{display:grid;gap:12px;min-height:100%;padding-bottom:110px;width:100%}
+.grid{
+  display:flex;
+  gap:12px;
+  min-height:100%;
+  padding-bottom:110px;
+  width:100%;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  scroll-snap-type:x proximity;
+}
 .semester{
   background:var(--panel);
   border-radius:14px;
@@ -97,7 +106,10 @@ body{
   overflow-x:hidden;
   box-shadow:var(--shadow);
   backdrop-filter:blur(18px);
-  transition:border-color 0.15s ease, box-shadow 0.15s ease
+  transition:border-color 0.15s ease, box-shadow 0.15s ease;
+  scroll-snap-align:start;
+  flex:0 0 260px;
+  min-width:260px;
 }
 .semester::-webkit-scrollbar{width:6px}
 .semester::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.45);border-radius:6px}

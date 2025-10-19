@@ -18,6 +18,7 @@ const THEME_STORAGE_KEY = 'malla_theme_v1';
 const MENU_VIEWPORT_PADDING = 12;
 const MENU_MIN_WIDTH = 240;
 const SEMESTER_MIN_WIDTH = 260;
+const CARD_FULL_WIDTH = SEMESTER_MIN_WIDTH + 12;
 
 const BUILT_IN_DEFINITIONS = [
   {
@@ -398,11 +399,6 @@ function uniquePlanName(base, plans) {
   return candidate;
 }
 
-function computeColumnsForWidth(width) {
-  const effective = Math.max(width - MENU_VIEWPORT_PADDING * 2, SEMESTER_MIN_WIDTH);
-  return Math.max(1, Math.floor(effective / SEMESTER_MIN_WIDTH));
-}
-
 function buildCodeResolver(courses) {
   const map = {};
   Object.values(courses).forEach((course) => {
@@ -743,10 +739,7 @@ export default function App() {
   const [colorScope, setColorScope] = useState('selected');
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [showThemeModal, setShowThemeModal] = useState(false);
-  const [columnsPerRow, setColumnsPerRow] = useState(() =>
-    computeColumnsForWidth(typeof window !== 'undefined' ? window.innerWidth : 1440)
-  );
-  const [visibleOffset, setVisibleOffset] = useState(0);
+  const [scrollMetrics, setScrollMetrics] = useState({ max: 0, value: 0, viewport: 0 });
 
   useEffect(() => {
     const plan = mallaState.plans[mallaState.selectedId];
@@ -869,21 +862,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handleResize = () => {
-      setColumnsPerRow(computeColumnsForWidth(window.innerWidth));
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    updateScrollMetrics();
+  }, [updateScrollMetrics, data.semesters.length, showTools, currentPlan]);
 
   useEffect(() => {
-    setVisibleOffset((offset) => {
-      const maxOffset = Math.max(0, data.semesters.length - columnsPerRow);
-      return Math.min(offset, maxOffset);
-    });
-  }, [columnsPerRow, data.semesters.length]);
+    if (typeof window === 'undefined') return;
+    const handleResize = () => updateScrollMetrics();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateScrollMetrics]);
+
+  useEffect(() => {
+    const container = gridRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const left = Math.round(container.scrollLeft);
+      setScrollMetrics((prev) => (prev.value === left ? prev : { ...prev, value: left }));
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [gridRef]);
 
   const planOptions = useMemo(
     () => Object.keys(mallaState.plans).map((id) => mallaState.plans[id]).filter(Boolean),
@@ -1431,24 +1429,45 @@ export default function App() {
 
   const activeCourse = actionMenu ? data.courses[actionMenu] : null;
 
-  const columns = useMemo(() => {
-    const count = data.semesters.length || 1;
-    return Math.max(1, Math.min(columnsPerRow, count));
-  }, [columnsPerRow, data.semesters.length]);
-
   const gridStyle = useMemo(
     () => ({
-      gridTemplateColumns: `repeat(${columns}, minmax(${SEMESTER_MIN_WIDTH}px, 1fr))`
+      scrollBehavior: 'smooth'
     }),
-    [columns]
+    []
   );
 
-  const visibleSemesters = useMemo(() => {
-    if (data.semesters.length <= columns) return data.semesters;
-    return data.semesters.slice(visibleOffset, visibleOffset + columns);
-  }, [data.semesters, columns, visibleOffset]);
+  const maxSliderValue = scrollMetrics.max;
+  const sliderStep = Math.max(1, Math.round(CARD_FULL_WIDTH));
 
-  const maxSliderValue = Math.max(0, data.semesters.length - columns);
+  const approxStart = useMemo(() => {
+    if (!data.semesters.length) return 0;
+    return Math.min(
+      data.semesters.length,
+      Math.floor(scrollMetrics.value / CARD_FULL_WIDTH) + 1
+    );
+  }, [scrollMetrics.value, data.semesters.length]);
+
+  const approxVisibleCount = useMemo(() => {
+    if (!data.semesters.length) return 0;
+    if (!scrollMetrics.viewport) return data.semesters.length;
+    return Math.max(1, Math.round(scrollMetrics.viewport / CARD_FULL_WIDTH));
+  }, [scrollMetrics.viewport, data.semesters.length]);
+
+  const approxEnd = useMemo(() => {
+    if (!data.semesters.length) return 0;
+    return Math.min(data.semesters.length, approxStart + approxVisibleCount - 1);
+  }, [data.semesters.length, approxStart, approxVisibleCount]);
+
+  const handleSliderInput = useCallback(
+    (event) => {
+      const target = Number(event.target.value);
+      if (gridRef.current) {
+        gridRef.current.scrollLeft = target;
+      }
+      setScrollMetrics((prev) => (prev.value === target ? prev : { ...prev, value: target }));
+    },
+    []
+  );
 
   useLayoutEffect(() => {
     if (!menuInfo || !menuRef.current) return;
@@ -1549,12 +1568,12 @@ export default function App() {
                 type='range'
                 min='0'
                 max={maxSliderValue}
-                step='1'
-                value={visibleOffset}
-                onChange={(e) => setVisibleOffset(Number(e.target.value))}
+                step={sliderStep}
+                value={scrollMetrics.value}
+                onChange={handleSliderInput}
               />
               <small>
-                {visibleOffset + 1} - {Math.min(visibleOffset + columns, data.semesters.length)} /{' '}
+                {data.semesters.length ? `${approxStart} - ${approxEnd}` : '0 - 0'} /{' '}
                 {data.semesters.length}
               </small>
             </div>
@@ -1565,7 +1584,7 @@ export default function App() {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className='main'>
           <div className='grid' ref={gridRef} style={gridStyle}>
-            {visibleSemesters.map((sem) => (
+            {data.semesters.map((sem) => (
               <Droppable droppableId={sem.id} key={sem.id}>
                 {(prov, snapshot) => (
                   <div
