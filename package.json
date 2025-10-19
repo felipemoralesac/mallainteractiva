@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "main": "electron/main.js",
-  "homepage": "https://felipemoralesac.github.io/malla-interactiva/",
+  "homepage": "https://felipemoralesac.github.io/mallainteractiva/",
   "dependencies": {
     "clsx": "1.2.1",
     "react": "18.2.0",
