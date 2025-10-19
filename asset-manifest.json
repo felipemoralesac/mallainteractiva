@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/mallainteractiva/static/css/main.c715de87.css",
-    "main.js": "/mallainteractiva/static/js/main.21f7e4b2.js",
+    "main.css": "/mallainteractiva/static/css/main.6f57ff33.css",
+    "main.js": "/mallainteractiva/static/js/main.8d7bfe32.js",
     "index.html": "/mallainteractiva/index.html",
-    "main.c715de87.css.map": "/mallainteractiva/static/css/main.c715de87.css.map",
-    "main.21f7e4b2.js.map": "/mallainteractiva/static/js/main.21f7e4b2.js.map"
+    "main.6f57ff33.css.map": "/mallainteractiva/static/css/main.6f57ff33.css.map",
+    "main.8d7bfe32.js.map": "/mallainteractiva/static/js/main.8d7bfe32.js.map"
   },
   "entrypoints": [
-    "static/css/main.c715de87.css",
-    "static/js/main.21f7e4b2.js"
+    "static/css/main.6f57ff33.css",
+    "static/js/main.8d7bfe32.js"
   ]
 }
