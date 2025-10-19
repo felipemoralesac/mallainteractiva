@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/mallainteractiva/static/css/main.0143a4fc.css",
+    "main.js": "/mallainteractiva/static/js/main.0a4f7978.js",
+    "index.html": "/mallainteractiva/index.html",
+    "main.0143a4fc.css.map": "/mallainteractiva/static/css/main.0143a4fc.css.map",
+    "main.0a4f7978.js.map": "/mallainteractiva/static/js/main.0a4f7978.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0143a4fc.css",
+    "static/js/main.0a4f7978.js"
+  ]
+}
