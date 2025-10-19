@@ -1,0 +1,102 @@
+:root{
+  --bg1:#030712;
+  --bg2:#020617;
+  --bg3:#1a2235;
+  --panel:rgba(11,17,29,0.92);
+  --course-text:#e2e8f0;
+  --muted:#94a3b8;
+  --accent:#38bdf8;
+  --course-normal:#1d4ed8;
+  --course-normal-soft:#2563eb;
+  --course-optativo:#0ea5e9;
+  --course-optativo-soft:#0284c7;
+  --course-general:#7c3aed;
+  --course-general-soft:#5b21b6;
+  --course-approved:#22c55e;
+  --course-approved-soft:#16a34a;
+  --border:rgba(56,189,248,0.2);
+  --shadow:0 18px 36px rgba(2,6,23,0.35);
+  --glow-color:#f97316;
+}
+*{box-sizing:border-box}
+html,body,#root{height:100%;margin:0}
+body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:radial-gradient(circle at 15% 20%, rgba(56,189,248,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(124,58,237,0.35), transparent 55%), linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 60%, var(--bg3) 100%); color:var(--course-text)}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:transparent}
+.app::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 30% 80%, rgba(34,197,94,0.12), transparent 55%), radial-gradient(circle at 80% 60%, rgba(56,189,248,0.18), transparent 50%);z-index:-2}
+.header{padding:12px 16px;background:var(--panel);backdrop-filter:blur(14px);color:var(--course-text);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);box-shadow:0 18px 28px rgba(2,6,23,0.45);position:sticky;top:0;z-index:40}
+.main{flex:1;overflow:auto;padding:6px 10px;display:flex}
+.grid{display:grid;gap:12px;min-height:100%;padding-bottom:110px;width:100%}
+.semester{background:var(--panel);border-radius:14px;border:1px solid rgba(148,163,184,0.15);padding:10px 8px;display:flex;flex-direction:column;max-height:72vh;overflow-y:auto;overflow-x:hidden;box-shadow:var(--shadow);backdrop-filter:blur(18px);transition:border-color 0.15s ease, box-shadow 0.15s ease}
+.semester::-webkit-scrollbar{width:6px}
+.semester::-webkit-scrollbar-thumb{background:rgba(148,163,184,0.45);border-radius:6px}
+.sem-title{font-weight:600;margin-bottom:4px;color:var(--course-text);text-align:center;font-size:13px}
+.course{background:linear-gradient(135deg,var(--course-base, var(--course-normal)), var(--course-base-soft, var(--course-normal-soft)));color:var(--course-text);padding:8px;margin-bottom:5px;border-radius:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;position:relative;border:1px solid var(--course-border, var(--course-normal));transition:box-shadow 0.12s ease, border-color 0.15s ease, background 0.15s ease;overflow:visible;cursor:grab}
+.course::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,rgba(56,189,248,0.35),rgba(124,58,237,0.4));opacity:0;transition:opacity 0.2s ease;z-index:-1}
+.course:hover::before{opacity:1}
+.course:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(37,99,235,0.4)}
+.course.dragging{transform:none;box-shadow:0 18px 36px rgba(37,99,235,0.55);border-color:rgba(59,130,246,0.85);cursor:grabbing;transition:none}
+.course.dragging::before{opacity:1}
+.course .left{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.course .meta{display:flex;gap:8px;font-size:10px;color:rgba(226,232,240,0.85);align-items:center;flex-wrap:wrap}
+.code-chip{background:rgba(15,23,42,0.35);color:#e0f2fe;padding:2px 6px;border-radius:999px;font-weight:600;letter-spacing:0.05em}
+.course.optativo{--course-base: var(--course-optativo); --course-base-soft: var(--course-optativo-soft); --course-border: var(--course-optativo)}
+.course.general{--course-base: var(--course-general); --course-base-soft: var(--course-general-soft); --course-border: var(--course-general)}
+.course.extra{--course-base: var(--course-extra); --course-base-soft: var(--course-extra-soft); --course-border: var(--course-extra)}
+.course.locked{opacity:0.55;filter:grayscale(0.2)}
+.course.approved{--course-base: var(--course-approved); --course-base-soft: var(--course-approved-soft); --course-border: var(--course-approved)}
+.course.highlighted{animation:pulseNeon 1.4s ease-in-out infinite;box-shadow:0 0 12px var(--glow-color),0 0 20px rgba(249,115,22,0.35);border-color:var(--glow-color)}
+.course.available{animation:pulseAvailable 1.4s ease-in-out infinite;box-shadow:0 0 10px var(--available-color, #3ef7bd),0 0 26px rgba(62,247,189,0.28);border-color:var(--available-color, #3ef7bd)}
+@keyframes pulseNeon{
+  0%,100%{box-shadow:0 0 6px var(--glow-color),0 0 16px rgba(255,255,255,0.2)}
+  50%{box-shadow:0 0 14px var(--glow-color),0 0 30px rgba(255,255,255,0.45)}
+}
+@keyframes pulseAvailable{
+  0%,100%{box-shadow:0 0 4px var(--available-color, #3ef7bd),0 0 12px rgba(62,247,189,0.18)}
+  50%{box-shadow:0 0 10px var(--available-color, #3ef7bd),0 0 26px rgba(62,247,189,0.32)}
+}
+.course-actions{position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:4px}
+.icon-button{width:22px;height:22px;border-radius:7px;border:1px solid rgba(148,163,184,0.35);background:rgba(15,23,42,0.55);color:#e2e8f0;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s ease, border-color 0.15s ease, transform 0.15s ease}
+.icon-button:hover{background:rgba(56,189,248,0.45);border-color:rgba(56,189,248,0.65);transform:translateY(-1px)}
+.icon-button:focus{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.45)}
+.menu-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:500;background:transparent}
+.floating-menu{position:absolute;background:rgba(15,23,42,0.95);border-radius:14px;border:1px solid rgba(56,189,248,0.35);box-shadow:0 24px 44px rgba(2,6,23,0.65);padding:12px 0;min-width:220px;font-size:13px;color:#e2e8f0;backdrop-filter:blur(18px);max-height:calc(100vh - 40px);overflow:auto}
+.floating-menu .menu-title{font-weight:600;padding:0 16px 8px 16px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.floating-menu button{width:100%;background:none;border:none;text-align:left;padding:10px 18px;font-size:12px;color:#e2e8f0;cursor:pointer;transition:background 0.15s ease, transform 0.1s ease}
+.floating-menu button:hover{background:rgba(56,189,248,0.14);transform:translateX(2px)}
+.floating-menu .danger{color:#b91c1c}
+.floating-menu .danger:hover{background:rgba(248,113,113,0.14)}
+.menu-subtitle{padding:6px 18px 4px 18px;font-size:11px;font-weight:600;color:rgba(148,163,184,0.85);text-transform:uppercase;letter-spacing:0.05em}
+.move-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:4px;padding:0 12px 8px}
+.move-grid button{background:none;border:1px solid rgba(56,189,248,0.25);color:#e2e8f0;border-radius:8px;padding:6px 10px;font-size:12px;text-align:center;transition:background 0.15s ease, border-color 0.15s ease}
+.move-grid button:hover{background:rgba(56,189,248,0.18);border-color:rgba(56,189,248,0.45);transform:none}
+.move-grid button:disabled{opacity:0.35;cursor:not-allowed;background:rgba(56,189,248,0.08)}
+.type-grid{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(10,15,26,0.92);backdrop-filter:blur(16px);padding:10px 16px;display:flex;gap:12px;align-items:flex-start;overflow:auto;border-top:1px solid rgba(56,189,248,0.2);box-shadow:0 -14px 28px rgba(2,6,23,0.55);z-index:50}
+.dock .panel{background:rgba(15,23,42,0.85);padding:12px;border-radius:14px;display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(56,189,248,0.25);box-shadow:0 14px 30px rgba(2,6,23,0.45);flex-wrap:wrap}
+.small{font-size:12px;padding:7px 12px;border-radius:9px;background:var(--accent);border:none;color:#041225;cursor:pointer;transition:background 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;font-weight:600}
+.small:hover{background:#0ea5e9;transform:translateY(-1px);box-shadow:0 8px 16px rgba(14,165,233,0.35)}
+.bulk-input{width:280px;min-height:80px;padding:8px 10px;border-radius:12px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.25);color:#e2e8f0;resize:vertical;box-shadow:0 10px 18px rgba(2,6,23,0.45);font-size:12px}
+.helper-text{margin-top:4px;font-size:11px;color:var(--muted)}
+.footer-right{position:fixed;right:12px;bottom:6px;color:var(--muted);font-size:11px;text-align:right;z-index:60}
+.footer-right strong{display:block;font-size:12px;color:var(--accent)}
+.stats{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted)}
+.creditos-small{margin-top:6px;font-size:11px;color:var(--muted);text-align:right}
+.credit-warning{color:#f87171;font-weight:700}
+.tooltip{position:absolute;left:50%;transform:translate(-50%, 0);bottom:calc(100% + 6px);background:rgba(15,23,42,0.95);color:#e2e8f0;padding:8px 10px;border-radius:10px;border:1px solid rgba(56,189,248,0.3);font-size:12px;white-space:nowrap;z-index:420;box-shadow:0 16px 28px rgba(2,6,23,0.65);backdrop-filter:blur(10px)}
+.semester.drag-over{border-color:rgba(56,189,248,0.8);box-shadow:0 18px 34px rgba(56,189,248,0.35)}
+.course, .course *{user-select:none}
+.theme-section{background:rgba(7,11,20,0.6);border-radius:12px;border:1px solid rgba(56,189,248,0.25);min-width:210px;overflow:hidden}
+.theme-section summary{cursor:pointer;padding:10px 12px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;list-style:none;display:flex;align-items:center;gap:6px}
+.theme-section summary::-webkit-details-marker{display:none}
+.theme-section[open]{background:rgba(7,11,20,0.75)}
+.theme-section[open] summary{border-bottom:1px solid rgba(56,189,248,0.2)}
+.theme-section > .theme-row, .theme-section > *:not(summary){padding:0 12px}
+.theme-section > .theme-row{margin-top:8px}
+.theme-section .theme-row.buttons{padding-bottom:10px}
+.theme-row{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.theme-row label{font-weight:600;color:var(--course-text)}
+.theme-row input[type='color']{width:48px;height:32px;border:none;border-radius:8px;background:transparent;padding:0;cursor:pointer}
+.theme-row select{background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:6px 8px;color:#e2e8f0;font-size:12px;min-width:140px}
+.theme-row.buttons{flex-direction:row;gap:8px}
+.course-select{min-width:180px;min-height:110px;background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.25);border-radius:8px;color:#e2e8f0;padding:6px;font-size:12px}
+.scope-select{min-width:160px}

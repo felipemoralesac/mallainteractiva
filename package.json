@@ -1,0 +1,66 @@
+{
+  "name": "malla-interactiva-uc-pedmat-v3-full",
+  "version": "3.0.0",
+  "private": true,
+  "main": "electron/main.js",
+  "homepage": "https://felipemoralesac.github.io/malla-interactiva/",
+  "dependencies": {
+    "clsx": "1.2.1",
+    "react": "18.2.0",
+    "react-beautiful-dnd": "13.1.1",
+    "react-dom": "18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "8.2.2",
+    "cross-env": "7.0.3",
+    "electron": "25.9.8",
+    "electron-builder": "24.6.2",
+    "gh-pages": "^6.3.0",
+    "wait-on": "7.2.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "dev:app": "cross-env BROWSER=none react-scripts start",
+    "dev:electron": "wait-on http://localhost:3000 && electron .",
+    "electron:dev": "concurrently \"npm run dev:app\" \"npm run dev:electron\"",
+    "electron:build": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.malla.interactiva",
+    "productName": "Malla Interactiva UC",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
